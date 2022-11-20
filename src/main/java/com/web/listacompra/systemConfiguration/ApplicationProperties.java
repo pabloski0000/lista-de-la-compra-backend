@@ -8,7 +8,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class ApplicationProperties {
     private static ApplicationProperties singleton;
-    private static final String SECRET_KEY_PARAMETER = "secretkey";
+    private static final String SECRET_KEY_PARAMETER = "JWT_SECRET_KEY";
     private String secretKeyValue;
     private static final String EXCEPTION_MESSAGE =
         "ApplicationProperties class is prepared to be previously instatiated by spring before any user uses it";
