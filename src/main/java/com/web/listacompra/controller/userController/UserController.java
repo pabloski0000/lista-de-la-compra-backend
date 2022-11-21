@@ -42,7 +42,7 @@ public class UserController {
     }
     @PostMapping(
         produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE,
-        path = "/register-admin"
+        path = "/register-user-admin"
         )
     @ResponseStatus(HttpStatus.CREATED)
     public RegisterUserOutDto registerAdmin(@Valid @RequestBody RegisterAdminDto registerAdminDto){
@@ -61,13 +61,9 @@ public class UserController {
     public RegisterUserOutDto registerUser(@Valid @RequestBody RegisterUserDto registerUserDto){
         return userApplication.registerUser(registerUserDto);
     }
-    @GetMapping(produces = MediaType.APPLICATION_NDJSON_VALUE, path = "/notify-of-new-subscribers")
+    @GetMapping(produces = MediaType.APPLICATION_NDJSON_VALUE, path = "/notify-admin-of-new-registrations")
     public Flux<PossibleSubscriberOutDto> notifyMeOfPossibleSubscribers(){
         return userApplication.notifyMeOfPossibleSubscribers();
-    }
-    @GetMapping(produces = MediaType.APPLICATION_NDJSON_VALUE, path = "/prueba")
-    public Flux<ChangeStreamEvent<PossibleSubscriber>> prueba(){
-        return userApplication.prueba();
     }
 
 }
