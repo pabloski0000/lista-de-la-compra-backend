@@ -50,13 +50,13 @@ public class UserController {
     }
     @PostMapping(
         produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE, 
-        path = "/register-possible-subscriber"
+        path = "/register-user"
         )
     @ResponseStatus(HttpStatus.CREATED)
     public void registerPossibleSubscriber(@Valid @RequestBody RegisterPossibleSubscriberDto registerPossibleSubscriberDto){
         userApplication.registerPossibleSubscriber(registerPossibleSubscriberDto);
     }
-    @PostMapping(produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE, path = "/register-user")
+    @PostMapping(produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE, path = "/confirm-registration")
     @ResponseStatus(HttpStatus.CREATED)
     public RegisterUserOutDto registerUser(@Valid @RequestBody RegisterUserDto registerUserDto){
         return userApplication.registerUser(registerUserDto);
