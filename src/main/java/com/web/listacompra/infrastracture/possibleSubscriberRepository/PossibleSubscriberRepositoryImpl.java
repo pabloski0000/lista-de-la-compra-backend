@@ -17,21 +17,21 @@ import reactor.core.publisher.Mono;
 
 @Repository
 public class PossibleSubscriberRepositoryImpl implements PossibleSubscriberRepository {
-    private final PossibleSubscriberReactiveConnectionDBRepository possibleSubscriberReactiveConnectionDBRepository;
-    private final PossibleSubscriberConnectionDBRepository possibleSubscriberConnectionDBRepository;
+    private PossibleSubscriberReactiveDao possibleSubscriberReactiveDao;
+    private final PossibleSubscriberMongoDb possibleSubscriberConnectionDBRepository;
     @Autowired
-    public PossibleSubscriberRepositoryImpl(final PossibleSubscriberReactiveConnectionDBRepository possibleSubscriberReactiveConnectionDBRepository, final PossibleSubscriberConnectionDBRepository possibleSubscriberConnectionDBRepository){
-        this.possibleSubscriberReactiveConnectionDBRepository = possibleSubscriberReactiveConnectionDBRepository;
+    public PossibleSubscriberRepositoryImpl(final PossibleSubscriberReactiveDao possibleSubscriberReactiveDao, final PossibleSubscriberMongoDb possibleSubscriberConnectionDBRepository){
+        this.possibleSubscriberReactiveDao = possibleSubscriberReactiveDao;
         this.possibleSubscriberConnectionDBRepository = possibleSubscriberConnectionDBRepository;
     }
     @Override
     public Flux<PossibleSubscriber> findAllTailable() {
-        return possibleSubscriberReactiveConnectionDBRepository.findAllTailable();
+        return possibleSubscriberReactiveDao.getInSync();
     }
     @Override
     public Mono<PossibleSubscriber> addPossibleSubscriberReactively(PossibleSubscriber possibleSubscriber) {
         possibleSubscriber.setNew(true);
-        Mono<PossibleSubscriber> storedPossibleSubscriber = possibleSubscriberReactiveConnectionDBRepository.save(possibleSubscriber);
+        Mono<PossibleSubscriber> storedPossibleSubscriber = possibleSubscriberReactiveDao.save(possibleSubscriber);
         storedPossibleSubscriber.doOnNext(it -> {
             it.setNew(false);
             possibleSubscriber.setNew(false);

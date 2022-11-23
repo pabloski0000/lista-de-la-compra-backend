@@ -7,6 +7,7 @@ import org.springframework.security.config.annotation.web.configuration.WebSecur
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
+import com.web.listacompra.controller.userController.UserControllerUrlPaths;
 import com.web.listacompra.security.filter.CustomAuthorizationFilter;
 
 @EnableWebSecurity
@@ -16,7 +17,11 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
         httpSecurity.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
         httpSecurity.csrf().disable();
         httpSecurity.authorizeRequests()
-        .antMatchers("/api/users/register-admin", "/api/users/register-possible-subscriber", "/api/users/register-user")
+        .antMatchers(
+            UserControllerUrlPaths.USER_ADMIN_REGISTRATION_SERVICE,
+            UserControllerUrlPaths.USER_REGISTRATION_SERVICE,
+            UserControllerUrlPaths.REGISTRATION_CONFIRMATION_SERVICE
+            )
         .permitAll()
         .antMatchers("/api/users/notify-of-new-subscribers")
         .hasRole("ADMIN")

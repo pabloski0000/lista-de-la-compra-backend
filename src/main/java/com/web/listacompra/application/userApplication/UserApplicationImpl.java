@@ -65,14 +65,14 @@ public class UserApplicationImpl implements UserApplication {
         return modelMapper.map(storedUser.get(), RegisterUserOutDto.class);
     }
     @Override
-    public void registerPossibleSubscriber(RegisterPossibleSubscriberDto registerPossibleSubscriberDto){
+    public void registerUser(RegisterPossibleSubscriberDto registerPossibleSubscriberDto){
         int code = (int) (Math.random() * 10000000);
         PossibleSubscriber possibleSubscriber = modelMapper.map(registerPossibleSubscriberDto, PossibleSubscriber.class);
         possibleSubscriber.setCode(code);
         possibleSubscriberRepository.addPossibleSubscriber(possibleSubscriber);
     }
     @Override
-    public RegisterUserOutDto registerUser(RegisterUserDto registerUserDto){
+    public RegisterUserOutDto confirmRegistration(RegisterUserDto registerUserDto){
         RegisterUserOutDto registerUserOutDtoIfFails = new RegisterUserOutDto();
         Optional<PossibleSubscriber> optionalPossibleSubscriber = possibleSubscriberRepository.findOneByNickName(registerUserDto.getNickName());
         if(!optionalPossibleSubscriber.isPresent()){
@@ -88,7 +88,8 @@ public class UserApplicationImpl implements UserApplication {
         user.setRole("ROLE_USER");
         List<String> roles = new ArrayList<>();
         roles.add(user.getRole());
-        user.setAccessToken(JWTGenerator.generateStandardJWT(user.getNickName(), roles, "inventado", new Date(System.currentTimeMillis() + 24 * 3600 * 1000)));
+        String secretKey = ApplicationProperties.getSingleton().getSecretKey();
+        user.setAccessToken(JWTGenerator.generateStandardJWT(user.getNickName(), roles, secretKey, new Date(System.currentTimeMillis() + 24 * 3600 * 1000)));
         Optional<User> storedUser = userRepository.addUser(user);
         return modelMapper.map(storedUser.get(), RegisterUserOutDto.class);
     }
@@ -101,7 +102,10 @@ public class UserApplicationImpl implements UserApplication {
     @Override
     public Flux<PossibleSubscriberOutDto> notifyMeOfPossibleSubscribers() {
         return possibleSubscriberRepository.findAllTailable()
-        .map(it -> modelMapper.map(it, PossibleSubscriberOutDto.class));
+        .map(it -> {
+            return modelMapper.map(it, PossibleSubscriberOutDto.class);
+        }
+        );
         /*return userRepository.findAllPossibleSubscribersTailable()
         .doOnNext(it -> System.out.println("Tailable"))
         .map(user -> {
@@ -113,12 +117,5 @@ public class UserApplicationImpl implements UserApplication {
             }
             return possibleSubscriberOutDtos;
         })*/
-    }
-    @Override
-    public Flux<ChangeStreamEvent<PossibleSubscriber>> prueba(){
-        Flux<ChangeStreamEvent<PossibleSubscriber>> variable = reactiveMongoTemplate.changeStream(PossibleSubscriber.class)
-        .watchCollection(PossibleSubscriber.class)
-        .listen();
-        return variable;
     }
 }

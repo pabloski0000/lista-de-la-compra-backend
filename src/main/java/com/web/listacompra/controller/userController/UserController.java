@@ -33,7 +33,7 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 @RestController
-@RequestMapping("/api/users")
+@RequestMapping()
 public class UserController {
     private final UserApplication userApplication;
     @Autowired
@@ -41,28 +41,36 @@ public class UserController {
         this.userApplication = userApplication;
     }
     @PostMapping(
-        produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE,
-        path = "/register-user-admin"
+        produces = MediaType.APPLICATION_JSON_VALUE,
+        consumes = MediaType.APPLICATION_JSON_VALUE,
+        path = UserControllerUrlPaths.USER_ADMIN_REGISTRATION_SERVICE
         )
     @ResponseStatus(HttpStatus.CREATED)
-    public RegisterUserOutDto registerAdmin(@Valid @RequestBody RegisterAdminDto registerAdminDto){
+    public RegisterUserOutDto registerUserAdmin(@Valid @RequestBody RegisterAdminDto registerAdminDto){
         return userApplication.registerAdmin(registerAdminDto);
     }
     @PostMapping(
         produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE, 
-        path = "/register-user"
+        path = UserControllerUrlPaths.USER_REGISTRATION_SERVICE
         )
     @ResponseStatus(HttpStatus.CREATED)
-    public void registerPossibleSubscriber(@Valid @RequestBody RegisterPossibleSubscriberDto registerPossibleSubscriberDto){
-        userApplication.registerPossibleSubscriber(registerPossibleSubscriberDto);
+    public void registerUser(@Valid @RequestBody RegisterPossibleSubscriberDto registerPossibleSubscriberDto){
+        userApplication.registerUser(registerPossibleSubscriberDto);
     }
-    @PostMapping(produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE, path = "/confirm-registration")
+    @PostMapping(
+        produces = MediaType.APPLICATION_JSON_VALUE,
+        consumes = MediaType.APPLICATION_JSON_VALUE,
+        path = UserControllerUrlPaths.REGISTRATION_CONFIRMATION_SERVICE
+        )
     @ResponseStatus(HttpStatus.CREATED)
-    public RegisterUserOutDto registerUser(@Valid @RequestBody RegisterUserDto registerUserDto){
-        return userApplication.registerUser(registerUserDto);
+    public RegisterUserOutDto confirmUserRegistration(@Valid @RequestBody RegisterUserDto registerUserDto){
+        return userApplication.confirmRegistration(registerUserDto);
     }
-    @GetMapping(produces = MediaType.APPLICATION_NDJSON_VALUE, path = "/notify-admin-of-new-registrations")
-    public Flux<PossibleSubscriberOutDto> notifyMeOfPossibleSubscribers(){
+    @GetMapping(
+        produces = MediaType.APPLICATION_NDJSON_VALUE,
+        path = UserControllerUrlPaths.USER_REGISTRATION_ALERTER_SERVICE
+        )
+    public Flux<PossibleSubscriberOutDto> sendAdminTheCodeToConfirmRegistration(){
         return userApplication.notifyMeOfPossibleSubscribers();
     }
 

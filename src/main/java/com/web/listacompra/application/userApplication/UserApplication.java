@@ -14,9 +14,8 @@ import reactor.core.publisher.Mono;
 
 public interface UserApplication {
     RegisterUserOutDto registerAdmin(RegisterAdminDto registerAdminDto);
-    void registerPossibleSubscriber(RegisterPossibleSubscriberDto registerPossibleSubscriberDto);
-    RegisterUserOutDto registerUser(RegisterUserDto registerUserDto);
+    void registerUser(RegisterPossibleSubscriberDto registerPossibleSubscriberDto);
+    RegisterUserOutDto confirmRegistration(RegisterUserDto registerUserDto);
     Flux<PossibleSubscriberOutDto> notifyMeOfPossibleSubscribers();
-    Flux<ChangeStreamEvent<PossibleSubscriber>> prueba();
     void deleteMyself();
 }
