@@ -15,6 +15,7 @@ import com.web.listacompra.domain.possibleSubscriberDomain.PossibleSubscriber;
 import com.web.listacompra.domain.possibleSubscriberDomain.PossibleSubscriberRepository;
 import com.web.listacompra.domain.userDomain.User;
 import com.web.listacompra.domain.userDomain.UserRepository;
+import com.web.listacompra.security.securityConfiguration.GrantedAuthorities;
 import com.web.listacompra.systemConfiguration.ApplicationProperties;
 import com.web.listacompra.utils.JWTGenerator;
 
@@ -23,6 +24,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.ChangeStreamEvent;
 import org.springframework.data.mongodb.core.ReactiveMongoTemplate;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetailsPasswordService;
 import org.springframework.stereotype.Service;
@@ -56,11 +58,9 @@ public class UserApplicationImpl implements UserApplication {
             registerUserOutDto.setAccessToken("Ya existe algún usuario en BBDD");
             return registerUserOutDto;
         }
-        user.setRole("ROLE_ADMIN");
-        List<String> roles = new ArrayList<>();
-        roles.add(user.getRole());
-        String secretKey = ApplicationProperties.getSingleton().getSecretKey();
-        user.setAccessToken(JWTGenerator.generateStandardJWT(user.getNickName(), roles, secretKey, new Date(System.currentTimeMillis() + 24 * 3600 * 1000)));
+        List<GrantedAuthority> authorities = new ArrayList<>();
+        authorities.add(GrantedAuthorities.ADMIN);
+        register(user, authorities);
         Optional<User> storedUser = userRepository.addUser(user);
         return modelMapper.map(storedUser.get(), RegisterUserOutDto.class);
     }
@@ -85,13 +85,20 @@ public class UserApplicationImpl implements UserApplication {
             return registerUserOutDtoIfFails;
         }
         User user = modelMapper.map(optionalPossibleSubscriber.get(), User.class);
-        user.setRole("ROLE_USER");
-        List<String> roles = new ArrayList<>();
-        roles.add(user.getRole());
-        String secretKey = ApplicationProperties.getSingleton().getSecretKey();
-        user.setAccessToken(JWTGenerator.generateStandardJWT(user.getNickName(), roles, secretKey, new Date(System.currentTimeMillis() + 24 * 3600 * 1000)));
+        register(user, new ArrayList<GrantedAuthority>());
         Optional<User> storedUser = userRepository.addUser(user);
         return modelMapper.map(storedUser.get(), RegisterUserOutDto.class);
+    }
+    private void register(User user, List<GrantedAuthority> authorities){
+        String secretKey = ApplicationProperties.getSingleton().getSecretKey();
+        user.setAccessToken(
+            JWTGenerator.generateStandardJWT(
+                user.getNickName(),
+                authorities,
+                secretKey,
+                new Date(System.currentTimeMillis() + 24 * 3600 * 1000)
+                )
+            );
     }
     @Override
     public void deleteMyself(){

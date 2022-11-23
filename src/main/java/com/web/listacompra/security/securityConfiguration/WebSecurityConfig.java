@@ -8,7 +8,8 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 import com.web.listacompra.controller.userController.UserControllerUrlPaths;
-import com.web.listacompra.security.filter.CustomAuthorizationFilter;
+import com.web.listacompra.security.filter.JWTAuthenticationFilter;
+import com.web.listacompra.security.filter.JWTAuthorizationFilter;
 
 @EnableWebSecurity
 public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
@@ -16,18 +17,8 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     protected void configure(HttpSecurity httpSecurity) throws Exception{
         httpSecurity.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
         httpSecurity.csrf().disable();
-        httpSecurity.authorizeRequests()
-        .antMatchers(
-            UserControllerUrlPaths.USER_ADMIN_REGISTRATION_SERVICE,
-            UserControllerUrlPaths.USER_REGISTRATION_SERVICE,
-            UserControllerUrlPaths.REGISTRATION_CONFIRMATION_SERVICE
-            )
-        .permitAll()
-        .antMatchers("/api/users/notify-of-new-subscribers")
-        .hasRole("ADMIN")
-        .anyRequest()
-        .authenticated()
-        .and()
-        .addFilterBefore(new CustomAuthorizationFilter(), UsernamePasswordAuthenticationFilter.class);
+        httpSecurity
+        .addFilterBefore(new JWTAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class)
+        .addFilterAfter(new JWTAuthorizationFilter(), JWTAuthenticationFilter.class);
     }
 }

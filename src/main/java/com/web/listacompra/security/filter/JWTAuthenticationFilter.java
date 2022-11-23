@@ -15,7 +15,9 @@ import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.interfaces.DecodedJWT;
 import com.auth0.jwt.interfaces.JWTVerifier;
 import com.web.listacompra.controller.userController.UserControllerUrlPaths;
+import com.web.listacompra.security.securityConfiguration.GrantedAuthorities;
 import com.web.listacompra.systemConfiguration.ApplicationProperties;
+import com.web.listacompra.utils.JWTGenerator;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -30,9 +32,10 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
-public class CustomAuthorizationFilter extends OncePerRequestFilter {
+public class JWTAuthenticationFilter extends OncePerRequestFilter {
     @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
+    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) 
+            throws ServletException, IOException {
         if(
             !request.getServletPath().matches(UserControllerUrlPaths.USER_REGISTRATION_SERVICE) &&
             !request.getServletPath().matches(UserControllerUrlPaths.USER_ADMIN_REGISTRATION_SERVICE) &&
@@ -48,12 +51,14 @@ public class CustomAuthorizationFilter extends OncePerRequestFilter {
             String secretKey = ApplicationProperties.getSingleton().getSecretKey();
             Algorithm algorithm = Algorithm.HMAC256(secretKey);
             JWTVerifier jwtVerifier = JWT.require(algorithm).build();
-            DecodedJWT decodedJWT = jwtVerifier.verify(access_token); //TODO (just as a posibility) error controller
+            DecodedJWT decodedJWT = jwtVerifier.verify(access_token);
             String username = decodedJWT.getSubject();
             Set<GrantedAuthority> grantedAuthorities = new HashSet<>();
-            String[] roles = decodedJWT.getClaim("roles").asArray(String.class);
-            for(String role: roles){
-                grantedAuthorities.add(new SimpleGrantedAuthority(role));
+            String[] authorities = decodedJWT.getClaim(JWTGenerator.AUTHORITIES_PROPERTY).asArray(String.class);
+            for(String authority: authorities){
+                if(authority.equals(GrantedAuthorities.ADMIN.getAuthority())){
+                    grantedAuthorities.add(GrantedAuthorities.ADMIN);
+                }
             }
             UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken = 
                 new UsernamePasswordAuthenticationToken(username, null, grantedAuthorities);
