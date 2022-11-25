@@ -16,7 +16,7 @@ import com.auth0.jwt.interfaces.DecodedJWT;
 import com.auth0.jwt.interfaces.JWTVerifier;
 import com.web.listacompra.controller.userController.UserControllerUrlPaths;
 import com.web.listacompra.security.securityConfiguration.GrantedAuthorities;
-import com.web.listacompra.systemConfiguration.ApplicationProperties;
+import com.web.listacompra.systemConfiguration.EnvironmentProperties;
 import com.web.listacompra.utils.JWTGenerator;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -48,7 +48,7 @@ public class JWTAuthenticationFilter extends OncePerRequestFilter {
                 throw new ServletException("You need to have an authorization field (as key) in your header request");
             }
             String access_token = authorization.substring("Bearer".concat(" ").length());
-            String secretKey = ApplicationProperties.getSingleton().getSecretKey();
+            String secretKey = EnvironmentProperties.getSingleton().getSecretKey();
             Algorithm algorithm = Algorithm.HMAC256(secretKey);
             JWTVerifier jwtVerifier = JWT.require(algorithm).build();
             DecodedJWT decodedJWT = jwtVerifier.verify(access_token);

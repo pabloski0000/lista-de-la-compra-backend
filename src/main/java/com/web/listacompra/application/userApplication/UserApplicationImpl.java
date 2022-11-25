@@ -16,7 +16,7 @@ import com.web.listacompra.domain.possibleSubscriberDomain.PossibleSubscriberRep
 import com.web.listacompra.domain.userDomain.User;
 import com.web.listacompra.domain.userDomain.UserRepository;
 import com.web.listacompra.security.securityConfiguration.GrantedAuthorities;
-import com.web.listacompra.systemConfiguration.ApplicationProperties;
+import com.web.listacompra.systemConfiguration.EnvironmentProperties;
 import com.web.listacompra.utils.JWTGenerator;
 
 import org.modelmapper.ModelMapper;
@@ -90,7 +90,7 @@ public class UserApplicationImpl implements UserApplication {
         return modelMapper.map(storedUser.get(), RegisterUserOutDto.class);
     }
     private void register(User user, List<GrantedAuthority> authorities){
-        String secretKey = ApplicationProperties.getSingleton().getSecretKey();
+        String secretKey = EnvironmentProperties.getSingleton().getSecretKey();
         user.setAccessToken(
             JWTGenerator.generateStandardJWT(
                 user.getNickName(),
