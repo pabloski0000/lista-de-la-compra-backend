@@ -1,6 +1,10 @@
 package com.web.listacompra.controller.userController;
 
 import java.util.List;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
 
 import javax.validation.Valid;
 
@@ -12,6 +16,9 @@ import com.web.listacompra.application.userApplication.RegisterUserOutDto;
 import com.web.listacompra.application.userApplication.UserApplication;
 import com.web.listacompra.domain.possibleSubscriberDomain.PossibleSubscriber;
 import com.web.listacompra.domain.userDomain.User;
+import com.web.listacompra.herokuApplication.newRegistrationStreamHerokuApplication.NewRegistrationEvent;
+import com.web.listacompra.herokuApplication.newRegistrationStreamHerokuApplication.NewRegistrationStreamEvent;
+import com.web.listacompra.herokuApplication.newRegistrationStreamHerokuApplication.NewRegistrationStreamEventObserver;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.ChangeStreamEvent;
@@ -30,15 +37,19 @@ import org.springframework.util.MultiValueMap;
 
 import reactor.core.Disposable;
 import reactor.core.publisher.Flux;
+import reactor.core.publisher.FluxSink;
 import reactor.core.publisher.Mono;
+import reactor.core.scheduler.Schedulers;
 
 @RestController
 @RequestMapping()
 public class UserController {
     private final UserApplication userApplication;
+    private NewRegistrationStreamEvent newRegistrationStreamEvent;
     @Autowired
-    public UserController(final UserApplication userApplication){
+    public UserController(final UserApplication userApplication, NewRegistrationStreamEvent newRegistrationStreamEvent){
         this.userApplication = userApplication;
+        this.newRegistrationStreamEvent = newRegistrationStreamEvent;
     }
     @PostMapping(
         produces = MediaType.APPLICATION_JSON_VALUE,
@@ -70,8 +81,36 @@ public class UserController {
         produces = MediaType.APPLICATION_NDJSON_VALUE,
         path = UserControllerUrlPaths.USER_REGISTRATION_ALERTER_SERVICE
         )
-    public Flux<PossibleSubscriberOutDto> sendAdminTheCodeToConfirmRegistration(){
-        return userApplication.notifyMeOfPossibleSubscribers();
+    public Flux<HttpBodyResponse> sendAdminTheCodeToConfirmRegistration(){
+        /*Flux<HttpBodyResponse> httpBodyResponse = userApplication.notifyMeOfPossibleSubscribers()
+            .map((PossibleSubscriberOutDto possibleSubscriberOutDto) -> {
+                NewRegistrationEvent newRegistrationEvent = new NewRegistrationEvent();
+                newRegistrationEvent.setNickname(possibleSubscriberOutDto.getNickName());
+                newRegistrationEvent.setCode(possibleSubscriberOutDto.getCode());
+                //empezar a contar
+                return newRegistrationEvent;
+            });
+        Runnable sendControlMessage = () -> {
+            ControlMessage controlMessage = new ControlMessage();
+            controlMessage.setType("are you still connected");
+            httpBodyResponse.mergeWith(Mono.just(controlMessage));
+            System.out.println("executed");
+        };
+        ScheduledExecutorService executorService = Executors.newScheduledThreadPool(2);
+        executorService.schedule(sendControlMessage, 3, TimeUnit.SECONDS);
+        return httpBodyResponse;*/
+        Flux<NewRegistrationEvent> newRegistrationEventFlux = Flux.<NewRegistrationEvent>create((FluxSink<NewRegistrationEvent> sink) -> {
+            NewRegistrationStreamEventObserver observer = (NewRegistrationEvent event) -> {
+                sink.next(event);
+            };
+            newRegistrationStreamEvent.subscribe(observer);
+        });
+        return newRegistrationEventFlux
+        .map((NewRegistrationEvent event) -> {
+            NewRegistration newRegistration = new NewRegistration();
+            newRegistration.setNickname(event.getNickname());
+            newRegistration.setCode(event.getCode());
+            return newRegistration;
+        });
     }
-
 }
