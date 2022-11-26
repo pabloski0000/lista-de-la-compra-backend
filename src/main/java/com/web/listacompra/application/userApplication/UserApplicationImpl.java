@@ -99,6 +99,7 @@ public class UserApplicationImpl implements UserApplication {
                 new Date(System.currentTimeMillis() + 24 * 3600 * 1000)
                 )
             );
+        user.setRoles(authorities.stream().map(authority -> authority.getAuthority()).toList());
     }
     @Override
     public void deleteMyself(){

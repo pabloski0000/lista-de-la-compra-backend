@@ -3,11 +3,7 @@ package com.web.listacompra.domain.userDomain;
 import java.util.List;
 
 import com.web.listacompra.domain.EntityBase;
-import com.web.listacompra.domain.possibleSubscriberDomain.PossibleSubscriber;
 
-import org.springframework.data.annotation.Id;
-import org.springframework.data.annotation.Transient;
-import org.springframework.data.domain.Persistable;
 import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 
@@ -21,5 +17,5 @@ public class User extends EntityBase {
     @Indexed(unique = true)
     private String nickName;
     private String accessToken;
-    private String role;
+    private List<String> roles;
 }
